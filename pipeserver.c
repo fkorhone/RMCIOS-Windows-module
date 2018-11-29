@@ -35,7 +35,7 @@ along with RMCIOS.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <windows.h>
 #include <stdio.h>
-#include "channel_functions.h"
+#include "RMCIOS-functions.h"
 
 #define CONNECTING_STATE 0
 #define READING_STATE 1
@@ -511,7 +511,6 @@ void pipeserver_class_func (struct pipeserver_data *this,
    }
 }
 
-
 void __declspec (dllexport)
      __cdecl init_channels (const struct context_rmcios *context)
 {
@@ -520,3 +519,4 @@ void __declspec (dllexport)
    create_channel_str (context, "pipeserver",
                        (class_rmcios) pipeserver_class_func, NULL);
 }
+

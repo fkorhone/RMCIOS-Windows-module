@@ -38,7 +38,7 @@ along with RMCIOS.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
-#include "channel_functions.h"
+#include "RMCIOS-functions.h"
 #include <sys/time.h>
 
 const struct context_rmcios *module_context;
