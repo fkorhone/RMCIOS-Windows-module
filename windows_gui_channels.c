@@ -79,13 +79,14 @@ void draw_pixel (struct draw_data *this)
 void draw_class_func (struct draw_data *this,
                       const struct context_rmcios *context, int id,
                       enum function_rmcios function,
-                      enum type_rmcios paramtype, union param_rmcios returnv,
+                      enum type_rmcios paramtype, 
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "GDI graphics channel\r\n"
                      "create name pixel\r\n"
                      "setup pixel X | Y | R G B\r\n"
@@ -354,13 +355,13 @@ void menu_class_func (struct menu_data *this,
                       const struct context_rmcios *context, int id,
                       enum function_rmcios function,
                       enum type_rmcios paramtype,
-                      union param_rmcios returnv,
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "menu channel - channel for creating windows menus\r\n"
                      "create newname menuname\r\n"
                      "create newname menu menuname\r\n"
@@ -482,13 +483,13 @@ void window_class_func (struct window_data *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv,
+                        struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "window channel \r\n" 
                      "channel for creating windows and controls\r\n"
                      "create window newname\r\n"
@@ -836,7 +837,7 @@ void window_class_func (struct window_data *this,
       {
          char buffer[len + 1];
          GetWindowTextA (this->hWnd, buffer, len + 1);
-         return_string (context, paramtype, returnv, buffer);
+         return_string (context, returnv, buffer);
       }
       break;
 

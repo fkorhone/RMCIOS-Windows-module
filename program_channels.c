@@ -221,21 +221,21 @@ void program_class_func (struct program_data *this,
                          const struct context_rmcios *context, int id,
                          enum function_rmcios function,
                          enum type_rmcios paramtype,
-                         union param_rmcios returnv, int num_params,
+                         struct combo_rmcios *returnv,
+                         int num_params,
                          const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
-                     "program channel"
-                     " - Channel for remotely executing programs\r\n");
-      return_string (context, paramtype, returnv, "create program newname\r\n");
-      return_string (context, paramtype, returnv,
-                     "setup newname program_start_cmd | work_dir \r\n");
-      return_string (context, paramtype, returnv, "write newname data \r\n");
-      return_string (context, paramtype, returnv, "write newname data \r\n");
-      return_string (context, paramtype, returnv, "link newname channel \r\n");
+      return_string (context, returnv,
+                     " program channel"
+                     "  - Channel for remotely executing programs\r\n"
+                     " create program newname\r\n"
+                     " setup newname program_start_cmd | work_dir \r\n"
+                     " write newname data \r\n"
+                     " write newname data \r\n"
+                     " link newname channel \r\n");
       break;
 
    case create_rmcios:

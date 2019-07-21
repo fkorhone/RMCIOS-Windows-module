@@ -125,18 +125,20 @@ void tcpserver_class_func (struct tcpserver_data *this,
                            const struct context_rmcios *context, int id,
                            enum function_rmcios function,
                            enum type_rmcios paramtype,
-                           union param_rmcios returnv, int num_params,
+                           struct combo_rmcios *returnv,
+                           int num_params,
                            const union param_rmcios param)
 {
    int plen;
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, "TCP server channel\n");
-      return_string (context, paramtype, returnv, "create tcpserver newname\n");
-      return_string (context, paramtype, returnv, "setup newname port\n");
-      return_string (context, paramtype, returnv, "write newname data\n");
-      return_string (context, paramtype, returnv, "link newname channel\n");
+      return_string (context, returnv, 
+                     "TCP server channel\n"
+                     "create tcpserver newname\n"
+                     "setup newname port\n"
+                     "write newname data\n"
+                     "link newname channel\n");
       break;
 
    case create_rmcios:
@@ -184,7 +186,7 @@ void tcpserver_class_func (struct tcpserver_data *this,
          pbuffer = param_to_buffer (context, paramtype, param, 0, plen, buffer);
          if (send (this->connection, pbuffer.data, pbuffer.length, 0) < 0)
          {
-            return_int (context, paramtype, returnv, -1);
+            return_int (context, returnv, -1);
             closesocket (this->connection);
          }
       }
@@ -229,13 +231,14 @@ void tcpclient_class_func (struct tcpclient_data *this,
                            const struct context_rmcios *context, int id,
                            enum function_rmcios function,
                            enum type_rmcios paramtype,
-                           union param_rmcios returnv, int num_params,
+                           struct combo_rmcios *returnv,
+                           int num_params,
                            const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, 
+      return_string (context, returnv, 
                      "TCP client channel\n"
                      "create tcpclient newname\n"
                      " setup newname ip port "
@@ -245,7 +248,7 @@ void tcpclient_class_func (struct tcpclient_data *this,
                      " write newname data \r\n"
                      "  # -Write data to the connection. Reconnect if needed\r\n"
                      " link newname channel # Link received data to channel\r\n"
-                      );
+                     );
       break;
 
    case create_rmcios:
@@ -322,7 +325,7 @@ void tcpclient_class_func (struct tcpclient_data *this,
          pbuffer = param_to_buffer (context, paramtype, param, 0, plen, buffer);
          if (send (this->connection, pbuffer.data, pbuffer.length, 0) < 0)
          {
-            return_int (context, paramtype, returnv, -1);
+            return_int (context, returnv, -1);
             closesocket (this->connection);
          }
       }
@@ -385,13 +388,14 @@ void udpclient_class_func (struct client_data *this,
                            const struct context_rmcios *context, int id,
                            enum function_rmcios function,
                            enum type_rmcios paramtype,
-                           union param_rmcios returnv, int num_params,
+                           struct combo_rmcios *returnv,
+                           int num_params,
                            const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, 
+      return_string (context, returnv, 
                      "UDP client channel\n"
                      "create udpclient newname\n"
                      " setup newname ip port # Set connection destination\r\n"
@@ -524,13 +528,14 @@ void udpserver_class_func (struct udpserver_data *this,
                            const struct context_rmcios *context, int id,
                            enum function_rmcios function,
                            enum type_rmcios paramtype,
-                           union param_rmcios returnv, int num_params,
+                           struct combo_rmcios *returnv,
+                           int num_params,
                            const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, 
+      return_string (context, returnv, 
                      "UDP server channel\n"
                      "create udpclient newname\n"
                      " setup newname port # Set receiving port\r\n"
