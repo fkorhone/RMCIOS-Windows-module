@@ -62,7 +62,7 @@ VOID CALLBACK timer_ticker (struct timer_data *this, BOOLEAN TimerOrWaitFired)
    if (this->linked_channel != 0)
       module_context->run_channel (module_context, this->linked_channel,
                                    write_rmcios, int_rmcios,
-                                   (union param_rmcios) 0,
+                                   0,
                                    0, (const union param_rmcios) 0);
    if (this->loops > 0)
    {
@@ -74,7 +74,7 @@ VOID CALLBACK timer_ticker (struct timer_data *this, BOOLEAN TimerOrWaitFired)
             module_context->run_channel (module_context,
                                          this->completion_channel,
                                          write_rmcios, int_rmcios,
-                                         (union param_rmcios) 0, 0,
+                                         0, 0,
                                          (const union param_rmcios) 0);
          DeleteTimerQueueTimer (this->hTimerQueue, this->timer, NULL);
          this->timer = NULL;
@@ -100,14 +100,14 @@ void timer_class_func (struct timer_data *this,
                        const struct context_rmcios *context, int id,
                        enum function_rmcios function,
                        enum type_rmcios paramtype,
-                       union param_rmcios returnv,
+                       struct combo_rmcios *returnv,
                        int num_params, const union param_rmcios param)
 {
    int plen;
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, 
+      return_string (context, returnv, 
                      "timer channel help:\r\n"
                      " create timer newname \r\n"
                      " setup newname period | loops(0) | completion_channel \r\n"
@@ -206,8 +206,10 @@ char use_localtime = 1;         // Flag to use local time
 
 void rtc_class_func (void *data, const struct context_rmcios *context, int id,
                      enum function_rmcios function,
-                     enum type_rmcios paramtype, union param_rmcios returnv,
-                     int num_params, const union param_rmcios param)
+                     enum type_rmcios paramtype, 
+                     struct combo_rmcios *returnv,
+                     int num_params, 
+                     const union param_rmcios param)
 {
    time_t rawtime, seconds;
    time (&seconds);
@@ -215,7 +217,7 @@ void rtc_class_func (void *data, const struct context_rmcios *context, int id,
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "rtc (realtime clock) channel help\r\n" 
                      " setup rtc timezone_offset(hours)\r\n"
                      " read rtc \r\n"
@@ -233,7 +235,7 @@ void rtc_class_func (void *data, const struct context_rmcios *context, int id,
       break;
 
    case read_rmcios:
-      return_int (context, paramtype, returnv, seconds);
+      return_int (context, returnv, seconds);
       break;
    
    case write_rmcios:
@@ -364,7 +366,8 @@ void rtc_str_class_func (struct rtc_str_data *this,
                          const struct context_rmcios *context, int id,
                          enum function_rmcios function,
                          enum type_rmcios paramtype,
-                         union param_rmcios returnv, int num_params,
+                         struct combo_rmcios *returnv,
+                         int num_params,
                          const union param_rmcios param)
 {
    int i;
@@ -374,7 +377,7 @@ void rtc_str_class_func (struct rtc_str_data *this,
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "rtc string representation subchannel help\r\n"
                      " create rtc_str newname\r\n"
                      " setup rtc_str formatstring | second_decimals(0) \r\n"
@@ -436,7 +439,7 @@ void rtc_str_class_func (struct rtc_str_data *this,
                              this->rtc_str_format, this->second_decimals,
                              timezone_offset);
          write_str (context, linked_channels (context, id), buffer, 0);
-         return_string (context, paramtype, returnv, buffer);
+         return_string (context, returnv, buffer);
          break;
       }
    case read_rmcios:
@@ -446,7 +449,7 @@ void rtc_str_class_func (struct rtc_str_data *this,
          print_current_time (buffer, sizeof (buffer),
                              this->rtc_str_format, this->second_decimals,
                              timezone_offset);
-         return_string (context, paramtype, returnv, buffer);
+         return_string (context, returnv, buffer);
          break;
       }
    }
@@ -493,7 +496,7 @@ VOID CALLBACK rtc_ticker (void *data, BOOLEAN TimerOrWaitFired)
             // Execute linked channels
             write_fv (module_context, 
                       linked_channels (module_context, t->id), 0, 0);   
-
+            
             // Update calculated current trigger time :
             t->prevtime = seconds + (t->offset % t->period) 
                           - (seconds % t->period);
@@ -507,13 +510,14 @@ void rtc_timer_class_func (struct rtc_timer_data *t,
                            const struct context_rmcios *context, int id,
                            enum function_rmcios function,
                            enum type_rmcios paramtype,
-                           union param_rmcios returnv, int num_params,
+                           struct combo_rmcios *returnv,
+                           int num_params,
                            const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, 
+      return_string (context, returnv, 
                      "rtc timer channel help\r\n"
                      "periodic realtime clock timer\r\n"
                      " create rtc_timer newname\r\n"
@@ -616,7 +620,7 @@ void rtc_timer_class_func (struct rtc_timer_data *t,
          seconds = time (NULL); 
          seconds += timezone_offset;
          int tleft = t->prevtime + t->period - seconds;
-         return_int (context, paramtype, returnv, tleft);
+         return_int(context, returnv, tleft);
       }
       break;
    }
@@ -653,7 +657,8 @@ DWORD WINAPI file_rx_thread (LPVOID data)
 void file_class_func (struct file_data *this,
                       const struct context_rmcios *context, int id,
                       enum function_rmcios function,
-                      enum type_rmcios paramtype, union param_rmcios returnv,
+                      enum type_rmcios paramtype, 
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    const char *s;
@@ -662,7 +667,7 @@ void file_class_func (struct file_data *this,
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, 
+      return_string (context, returnv, 
                      "file channel help\r\n"
                      " create file ch_name\r\n"
                      " setup ch_name filename | mode=a | keep_open=1 \r\n"
@@ -803,23 +808,27 @@ void file_class_func (struct file_data *this,
                                  namelen, namebuffer);
             FILE *f;
             int fsize;
-
+            
             f = fopen (s, "rb");
-            // seek to end of file
-            fseek (f, 0, SEEK_END);     
-            // get current file pointer
-            fsize = ftell (f);  
-            // seek back to beginning of file
-            fseek (f, 0, SEEK_SET);     
+            if (f != 0)
+            { 
+               // seek to end of file
+               fseek (f, 0, SEEK_END);     
+               // get current file pointer
+               fsize = ftell (f);  
+               // seek back to beginning of file
+               fseek (f, 0, SEEK_SET);     
 
-            // Allocate memory for the file:
-            {
-               char fbuffer[fsize];
-               fread (fbuffer, 1, fsize, f);
-               // Return the contents of the file in one call.
-               return_buffer (context, paramtype, returnv, fbuffer, fsize);
+               if (fsize != -1)
+               {
+                  // Allocate memory for the file:
+                  char fbuffer[fsize];
+                  fread (fbuffer, 1, fsize, f);
+                  // Return the contents of the file in one call.
+                  return_buffer (context, returnv, fbuffer, fsize);
+               }
+               fclose (f);
             }
-            fclose (f);
          }
       }
       break;
@@ -854,13 +863,14 @@ void console_class_func (struct console_data *this,
                          const struct context_rmcios *context, int id,
                          enum function_rmcios function,
                          enum type_rmcios paramtype,
-                         union param_rmcios returnv, int num_params,
+                         struct combo_rmcios *returnv,
+                         int num_params,
                          const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, 
+      return_string (context, returnv, 
                      "console channel help\r\n"
                      "setup console title\r\n"
                      "write console data\r\n"
@@ -919,13 +929,14 @@ struct clock_data
 void clock_class_func (struct clock_data *this,
                        const struct context_rmcios *context, int id,
                        enum function_rmcios function,
-                       enum type_rmcios paramtype, union param_rmcios returnv,
+                       enum type_rmcios paramtype, 
+                       struct combo_rmcios *returnv,
                        int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, 
+      return_string (context, returnv, 
                      "clock channel help\r\n"
                      " create clock ch_name\r\n"
                      " read ch_name \r\n"
@@ -956,7 +967,7 @@ void clock_class_func (struct clock_data *this,
       DWORD ticknow;
       ticknow = GetTickCount ();
       float elapsed = ((float) (ticknow - this->start)) / 1000.0;
-      return_float (context, paramtype, returnv, elapsed);
+      return_float (context, returnv, elapsed);
       break;
    case write_rmcios:
       if (this == NULL)
@@ -966,7 +977,7 @@ void clock_class_func (struct clock_data *this,
          DWORD ticknow;
          ticknow = GetTickCount ();
          float elapsed = ((float) (ticknow - this->start)) / 1000.0;
-         return_float (context, paramtype, returnv, elapsed);
+         return_float (context, returnv, elapsed);
          write_f (context, linked_channels (context, id), elapsed);
          this->start = ticknow;
       }
@@ -988,13 +999,14 @@ void fast_clock_class_func (struct fast_clock_data *this,
                             const struct context_rmcios *context, int id,
                             enum function_rmcios function,
                             enum type_rmcios paramtype,
-                            union param_rmcios returnv, int num_params,
+                            struct combo_rmcios *returnv,
+                            int num_params,
                             const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "fast clock channel - Uses windows performance counter.\r\n"
                      " create fast_clock ch_name\r\n"
                      " read ch_name \r\n"
@@ -1030,7 +1042,7 @@ void fast_clock_class_func (struct fast_clock_data *this,
       elapsed =
          ((double) (ticknow.QuadPart - this->start.QuadPart)) /
          performance_frequency.QuadPart;
-      return_float (context, paramtype, returnv, elapsed);
+      return_float (context, returnv, elapsed);
       break;
    case write_rmcios:
       if (this == NULL)
@@ -1043,7 +1055,7 @@ void fast_clock_class_func (struct fast_clock_data *this,
          elapsed =
             ((double) (ticknow.QuadPart - this->start.QuadPart)) /
             performance_frequency.QuadPart;
-         return_float (context, paramtype, returnv, elapsed);
+         return_float (context, returnv, elapsed);
          write_f (context, linked_channels (context, id), elapsed);
          this->start = ticknow;
       }
@@ -1062,14 +1074,15 @@ void subconsole_class_func (struct subconsole_data *this,
                             const struct context_rmcios *context, int id,
                             enum function_rmcios function,
                             enum type_rmcios paramtype,
-                            union param_rmcios returnv, int num_params,
+                            struct combo_rmcios *returnv,
+                            int num_params,
                             const union param_rmcios param)
 {
    float wait_time;
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, 
+      return_string (context, returnv, 
                      "subconsole cursor help\r\n"
                      " create subconsole newname\r\n"
                      " setup newname X Y \r\n"
@@ -1167,14 +1180,15 @@ void subconsole_class_func (struct subconsole_data *this,
 
 void wait_class_func (void *data, const struct context_rmcios *context,
                       int id, enum function_rmcios function,
-                      enum type_rmcios paramtype, union param_rmcios returnv,
+                      enum type_rmcios paramtype, 
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    float wait_time;
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, 
+      return_string (context, returnv, 
                      "wait channel help\r\n"
                      " write wait time # waits time (s)\r\n"
                      );
@@ -1197,13 +1211,14 @@ struct delay_data
 void delay_class_func (struct delay_data *this,
                        const struct context_rmcios *context, int id,
                        enum function_rmcios function,
-                       enum type_rmcios paramtype, union param_rmcios returnv,
+                       enum type_rmcios paramtype, 
+                       struct combo_rmcios *returnv,
                        int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "delay channel help - Delay signals\r\n"
                      " create delay newname\r\n"
                      " setup newname s \r\n"
@@ -1261,15 +1276,16 @@ void terminate_windows_channels (void)
 
 void exit_class_func (void *data, const struct context_rmcios *context,
                       int id, enum function_rmcios function,
-                      enum type_rmcios paramtype, union param_rmcios returnv,
+                      enum type_rmcios paramtype, 
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
-                     "exit channel to exit system\r\n");
-      return_string (context, paramtype, returnv, "write exit\r\n");
+      return_string (context, returnv,
+                     "exit channel to exit system\r\n"
+                     "write exit\r\n");
       break;
    case write_rmcios:
       exit (0);
@@ -1280,15 +1296,17 @@ void exit_class_func (void *data, const struct context_rmcios *context,
 
 void hide_class_func (void *data, const struct context_rmcios *context,
                       int id, enum function_rmcios function,
-                      enum type_rmcios paramtype, union param_rmcios returnv,
+                      enum type_rmcios paramtype, 
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, "hide console window\r\n");
-      return_string (context, paramtype, returnv, "write hide console\r\n");
-      return_string (context, paramtype, returnv, " -hides the console\r\n");
+      return_string (context, returnv, 
+                     "hide console window\r\n"
+                     "write hide console\r\n"
+                     " -hides the console\r\n");
       break;
    case write_rmcios:
       if (num_params < 1)
@@ -1308,15 +1326,18 @@ void hide_class_func (void *data, const struct context_rmcios *context,
 
 void show_class_func (void *data, const struct context_rmcios *context,
                       int id, enum function_rmcios function,
-                      enum type_rmcios paramtype, union param_rmcios returnv,
+                      enum type_rmcios paramtype, 
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv, "show window\r\n");
-      return_string (context, paramtype, returnv, "write show console\r\n");
-      return_string (context, paramtype, returnv, " -shows the console\r\n");
+      return_string (context, returnv, 
+                     "show window\r\n"
+                     "write show console\r\n"
+                     " -shows the console\r\n"
+                     );
       break;
    case write_rmcios:
       if (num_params < 1)

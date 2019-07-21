@@ -158,7 +158,7 @@ void serial_port_subchan_func (struct serial_data *this,
                                const struct context_rmcios *context, int id,
                                enum function_rmcios function,
                                enum type_rmcios paramtype,
-                               union param_rmcios returnv,
+                               struct combo_rmcios *returnv,
                                int num_params, const union param_rmcios param)
 {
    switch (function)
@@ -213,7 +213,7 @@ void serial_class_func (struct serial_data *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv,
+                        struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param)
 {
    char *s;
@@ -222,7 +222,7 @@ void serial_class_func (struct serial_data *this,
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Serial channel help.\r\n"
                      " create serial newname | comX\r\n"
                      " read serial # read list of system serialports\r\n"
@@ -410,15 +410,15 @@ void serial_class_func (struct serial_data *this,
 
                if (retCode == ERROR_SUCCESS)
                {
-                  return_string (context, paramtype, returnv, value);
-                  return_string (context, paramtype, returnv, " ");
+                  return_string (context, returnv, value);
+                  return_string (context, returnv, " ");
                }
             }
          }
          RegCloseKey (hey);
       }
       else
-         return_string (context, paramtype, returnv, this->rxbuffer);
+         return_string (context, returnv, this->rxbuffer);
       break;
 
    case write_rmcios:

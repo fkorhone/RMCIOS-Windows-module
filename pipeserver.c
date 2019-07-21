@@ -389,7 +389,7 @@ void pipeserver_class_func (struct pipeserver_data *this,
                             const struct context_rmcios *context, int id,
                             enum function_rmcios function,
                             enum type_rmcios paramtype,
-                            union param_rmcios returnv,
+                            struct combo_rmcios *returnv,
                             int num_params, const union param_rmcios param)
 {
    int plen;
@@ -399,7 +399,7 @@ void pipeserver_class_func (struct pipeserver_data *this,
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "pipeserver channel "
                      "  -Windows pipeserver broadcasting data."
                      "  -data is tramsmitted all connected pipe clients.\r\n"
