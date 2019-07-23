@@ -60,10 +60,12 @@ struct timer_data
 VOID CALLBACK timer_ticker (struct timer_data *this, BOOLEAN TimerOrWaitFired)
 {
    if (this->linked_channel != 0)
-      module_context->run_channel (module_context, this->linked_channel,
+   {
+      run_channel (module_context, this->linked_channel,
                                    write_rmcios, int_rmcios,
                                    0,
                                    0, (const union param_rmcios) 0);
+   }
    if (this->loops > 0)
    {
       this->index++;
@@ -71,11 +73,13 @@ VOID CALLBACK timer_ticker (struct timer_data *this, BOOLEAN TimerOrWaitFired)
       // Stop timer
       {
          if (this->completion_channel != 0)
-            module_context->run_channel (module_context,
+         {
+            run_channel (module_context,
                                          this->completion_channel,
                                          write_rmcios, int_rmcios,
                                          0, 0,
                                          (const union param_rmcios) 0);
+         }
          DeleteTimerQueueTimer (this->hTimerQueue, this->timer, NULL);
          this->timer = NULL;
          return;        
@@ -1261,7 +1265,7 @@ void delay_class_func (struct delay_data *this,
       
       // wait in ms
       Sleep (this->delay); 
-      context->run_channel (context, linked_channels (context, id),
+      run_channel (context, linked_channels (context, id),
                             function, paramtype, returnv, num_params, param);
       break;
    }
