@@ -149,6 +149,8 @@ void draw_class_func (struct draw_data *this,
             ((struct pixel_data *) (this->data))->X =
                param_to_integer (context, paramtype, param, 0);
             break;
+         default:
+            break;
          }
       }
       if (num_params > 1)
@@ -158,6 +160,8 @@ void draw_class_func (struct draw_data *this,
          case DRAW_PIXEL:
             ((struct pixel_data *) (this->data))->Y =
                param_to_integer (context, paramtype, param, 1);
+            break;
+         default:
             break;
          }
       }
@@ -172,11 +176,15 @@ void draw_class_func (struct draw_data *this,
             b = param_to_integer (context, paramtype, param, 4);
             ((struct pixel_data *) (this->data))->crColor = RGB (r, g, b);
             break;
+         default:
+            break;
          }
       }
 
       RedrawWindow (this->hWnd, NULL, 0, RDW_INTERNALPAINT | RDW_INVALIDATE);
 
+      break;
+   default:
       break;
    }
 }
@@ -225,7 +233,6 @@ struct window_data
 DWORD WINAPI window_thread (LPVOID data)
 {
    struct window_data *this = (struct window_data *) data;
-   DWORD TCount;
    this->hWnd = CreateWindowExA (0, this->lpClassName, "",
                                  this->dwStyle,
                                  0, 0, 640, 480,
@@ -290,8 +297,7 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
       EndPaint (hWnd, &this->paint);
 
-      DefWindowProc (hWnd, Msg, wParam, lParam);
-      break;
+      return DefWindowProc (hWnd, Msg, wParam, lParam);
 
    case WM_DESTROY:
       DefWindowProc (hWnd, Msg, wParam, lParam);
@@ -301,12 +307,11 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
    case WM_COMMAND:
       switch (HIWORD (wParam))
       {
-         int slen;
-         int linked;
-
       case EN_CHANGE:
       case 0:
-
+         {
+         int slen;
+         int linked;
          linked = (short int) LOWORD (wParam);
          slen = GetWindowTextLengthA ((HWND) lParam);
          {
@@ -317,13 +322,17 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
                str[slen] = 0;
             else
                str[0] = 0;
+            
             if (linked != 0)
+            {
                write_str (module_context, linked, str, 0);
+            }
 
+         }
          }
          break;
       }
-      break;
+      return DefWindowProc (hWnd, Msg, wParam, lParam);
    case WM_CLOSE:
       write_iv (module_context,
                 linked_channels (module_context, this->id), 0, NULL);
@@ -333,6 +342,7 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
    default:
       return DefWindowProc (hWnd, Msg, wParam, lParam);
    }
+   return 0;
 }
 
 struct menu_data
@@ -476,8 +486,11 @@ void menu_class_func (struct menu_data *this,
          break;
       write_iv (context, linked_channels (context, id), 0, NULL);
       break;
+   default:
+      break;
    }
 }
+
 
 void window_class_func (struct window_data *this,
                         const struct context_rmcios *context, int id,
@@ -486,6 +499,7 @@ void window_class_func (struct window_data *this,
                         struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param)
 {
+
    switch (function)
    {
    case help_rmcios:
@@ -658,20 +672,15 @@ void window_class_func (struct window_data *this,
          {
             strcpy (this->lpClassName, "MyWin");
             this->dwStyle = WS_OVERLAPPEDWINDOW;
-            HANDLE myHandle = CreateThread (0, 0,
-                                            window_thread,
-                                            this,
-                                            0,
-                                            &this->idThread);
+            CreateThread (0, 0,
+                          window_thread,
+                          this,
+                          0,
+                          &this->idThread);
 
          }
          else
          {
-
-            WNDCLASSEXA wndc = { 0 };
-            wndc.cbSize = sizeof (WNDCLASSEXW);
-
-
             switch (this->type)
             {
             case WIN_WINDOW:
@@ -752,7 +761,7 @@ void window_class_func (struct window_data *this,
       {
          char c = 0;
          param_to_buffer (context, paramtype, param, 0, 1, &c);
-         if (this->parent != NULL && c == '+' || c == '-')      
+         if (this->parent != NULL && (c == '+' || c == '-'))      
          // relative insertion
          {
             this->parent->placement_x +=
@@ -769,7 +778,7 @@ void window_class_func (struct window_data *this,
 
          c = 0;
          param_to_buffer (context, paramtype, param, 1, 1, &c);
-         if (this->parent != NULL && c == '+' || c == '-')
+         if (this->parent != NULL && (c == '+' || c == '-'))
          // relative insertion
          {
             this->parent->placement_y +=
@@ -806,7 +815,18 @@ void window_class_func (struct window_data *this,
       {
          this->dwExStyle = param_to_integer (context, paramtype, param, 6);
       }
-      SetWindowPos (this->hWnd, //_In_ HWND hWnd,
+
+
+      if (this->hWnd == NULL)   // Create the subwindow
+      {
+         PostThreadMessage (this->idThread, WM_APP, //_In_ UINT   Msg,
+                            0,  //_In_ WPARAM wParam,
+                            (LPARAM) this       //_In_ LPARAM lParam
+                           );
+      }
+      else
+      {
+         SetWindowPos (this->hWnd, //_In_ HWND hWnd,
                     0,  //_In_opt_ HWND hWndInsertAfter,
                     this->x,    //_In_ int  X,
                     this->y,    //_In_ int  Y,
@@ -815,12 +835,6 @@ void window_class_func (struct window_data *this,
                     0   // _In_    UINT uFlags
          );
 
-      if (this->hWnd == NULL)   // Create the subwindow
-      {
-         PostThreadMessage (this->idThread, WM_APP, //_In_ UINT   Msg,
-                            0,  //_In_ WPARAM wParam,
-                            (LPARAM) this       //_In_ LPARAM lParam
-                           );
       }
 
       if (this->parent == NULL)
@@ -843,8 +857,13 @@ void window_class_func (struct window_data *this,
 
    case write_rmcios:
       {
-         if (this == NULL)
+
+         if (this == NULL) break;
+          
+         if (this->hWnd == NULL)
+         {
             break;
+         }
          int len = GetWindowTextLength (this->hWnd);
          if (num_params < 1)
          {
@@ -854,30 +873,34 @@ void window_class_func (struct window_data *this,
          }
          else
          {
-            int plen = param_string_alloc_size (context, paramtype, param,
-                                                0);
+            int plen = param_string_alloc_size (context, paramtype, param, 0);
             {
                // Determine the needed buffer size
                const char *s;
                char cbuffer[len + 1];
+               char buffer[plen];
                // allocate buffer
-               char buffer[plen];       
                s = param_to_string (context, paramtype, param, 0, plen, buffer);
-               GetWindowTextA (this->hWnd, cbuffer, len + 1);
-
+               int status ;
+               status = GetWindowTextA (this->hWnd, cbuffer, len + 1);
+               if(status==0) cbuffer[0]=0;
                if (strcmp (s, cbuffer) != 0)
                {
                   SetWindowTextA (this->hWnd, //_In_ HWND hWnd,
                                   s //_In_opt_ LPCTSTR lpString
-                                 );
+                                  );
                }
                if (this->type != WIN_WINDOW)
+               {
                   write_str (context, linked_channels (context, id), buffer, 0);
+               }
                break;
             }
          }
 
       }
+      break;
+   default:
       break;
    }
 }
