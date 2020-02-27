@@ -33,10 +33,10 @@ along with RMCIOS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 #include <stdio.h>
-#include "channel_functions.h"
+#include "RMCIOS-functions.h"
 
-#include<io.h>
-#include<winsock2.h>
+#include <io.h>
+#include <winsock2.h>
 #include <windows.h>
 #pragma comment(lib,"ws2_32.lib")       //Winsock Library
 
