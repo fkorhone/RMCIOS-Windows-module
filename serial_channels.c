@@ -73,6 +73,7 @@ struct serial_data
    int halt_serial;
    DCB ss_dcb;
    int ctl_mode;
+   int config_changed;
 };
 
 DWORD WINAPI serial_rx_thread (LPVOID data)
@@ -84,6 +85,14 @@ DWORD WINAPI serial_rx_thread (LPVOID data)
    char open_error = 0;
    while (1)
    {
+      if(this->config_changed == 1)
+      {
+         this->config_changed = 0;
+         CloseHandle (this->serial_handle);
+         Sleep(10); // Give driver some time to close
+         this->serial_handle = INVALID_HANDLE_VALUE;
+      }
+
       dwRead = 0;
       if (this->serial_handle != INVALID_HANDLE_VALUE)
       {
@@ -292,6 +301,7 @@ void serial_class_func (struct serial_data *this,
       this->ss_dcb.fDtrControl = 1;
       this->ss_dcb.fRtsControl = 1;
       this->ctl_mode = 0;
+      this->config_changed = 0;
 
       this->id =
          create_channel_param (context, paramtype, param, 0,
@@ -330,9 +340,8 @@ void serial_class_func (struct serial_data *this,
             this->ss_dcb.StopBits =
                (param_to_int (context, paramtype, param, 3) - 1) >> 1;
          }
-         // Close the handle -> thread will reopen and configure
-         if (this->serial_handle != INVALID_HANDLE_VALUE)
-            CloseHandle (this->serial_handle);
+         // Signal thread to reopen and configure
+         this->config_changed = 1;
 
          if (num_params < 5) break;
          
