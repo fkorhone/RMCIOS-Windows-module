@@ -119,6 +119,8 @@ DWORD WINAPI pipeserver (LPVOID lpvParam)
          return 0;
       }
 
+      memset(&Pipe[i].oOverlap, 0, sizeof(Pipe[i].oOverlap)); 
+      memset(&Pipe[i].wOverlap, 0, sizeof(Pipe[i].wOverlap)); 
       Pipe[i].oOverlap.hEvent = hEvents[i];
       Pipe[i].wOverlap.hEvent = wEvents[i];
 
@@ -429,7 +431,7 @@ void pipeserver_class_func (struct pipeserver_data *this,
       // allocate new data
       this = (struct pipeserver_data *) 
              malloc (sizeof (struct pipeserver_data));       
-      
+      memset (this, 0, sizeof (struct pipeserver_data)); 
       //default values :
       this->hin = INVALID_HANDLE_VALUE;
       this->hout = INVALID_HANDLE_VALUE;
