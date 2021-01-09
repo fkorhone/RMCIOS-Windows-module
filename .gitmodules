@@ -1,0 +1,9 @@
+[submodule "RMCIOS-test"]
+	path = RMCIOS-test
+	url = https://github.com/fkorhone/RMCIOS-test.git
+[submodule "RMCIOS-build-scripts"]
+	path = RMCIOS-build-scripts
+	url = https://github.com/fkorhone/RMCIOS-build-scripts.git
+[submodule "RMCIOS-interface"]
+	path = RMCIOS-interface
+	url = https://github.com/fkorhone/RMCIOS-interface.git
