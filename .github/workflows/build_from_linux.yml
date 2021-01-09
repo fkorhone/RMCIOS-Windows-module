@@ -1,0 +1,45 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: install binutils
+      run: sudo apt install binutils-mingw-w64-i686
+    - name: install gcc win32
+      run: sudo apt install gcc-mingw-w64-i686
+    - name: install gcc win64
+      run: sudo apt install gcc-mingw-w64-x86-64
+    
+    - uses: actions/checkout@v2
+    - name: clone submodules
+      run: git submodule update --init
+
+    - name: compile win32
+      run: make TOOL_PREFIX=i686-w64-mingw32-
+      
+    - name: copy win32 files
+      run: make install INSTALLDIR=artifacts/win32
+
+    - name: compile win64
+      run: make TOOL_PREFIX=x86_64-w64-mingw32- 
+
+    - name: copy win64 files
+      run: make install INSTALLDIR=artifacts/win64
+
+    - uses: actions/upload-artifact@v1
+      name: upload win32 artifacts
+      with:
+        name: Windows-modules-win32
+        path: artifacts/win32
+
+    - uses: actions/upload-artifact@v1
+      name: upload win64 artifacts
+      with:
+        name: Windows-modules-win64
+        path: artifacts/win64
+

@@ -1,0 +1,76 @@
+name: Create develop release
+
+on:
+  push:
+     # branches to consider in the event; optional, defaults to all
+     branches:
+       - master
+
+jobs:
+  build:
+    name: Create Release
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: install binutils
+      run: sudo apt install binutils-mingw-w64-i686
+    - name: install gcc win32
+      run: sudo apt install gcc-mingw-w64-i686
+    - name: install gcc win64
+      run: sudo apt install gcc-mingw-w64-x86-64
+
+    - uses: actions/checkout@v2
+    - name: clone submodules
+      run: git submodule update --init
+
+    - name: compile win32
+      run: make TOOL_PREFIX=i686-w64-mingw32-
+   
+    - name: copy win32 files
+      run: make install INSTALLDIR=artifacts/win32
+
+    - name: compile win64
+      run: make TOOL_PREFIX=x86_64-w64-mingw32-   
+
+    - name: copy win64 files
+      run: make install INSTALLDIR=artifacts/win64
+
+    - name: Archive 32bit Release
+      run: cd artifacts/win32; zip -r ../../module-win32.zip *
+
+    - name: Archive 64bit Release
+      run: cd artifacts/win64; zip -r ../../module-win64.zip *
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          tag_name: ${{ github.ref }}
+          release_name: develop ${{ github.ref }}
+          draft: false
+          prerelease: true
+
+    - name: Upload 32bit Release Asset
+      id: upload-32bit-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above
+          asset_path: ./module-win32.zip
+          asset_name: RMCIOS-Windows-modules-win32.zip
+          asset_content_type: application/zip
+
+    - name: Upload 64bit Release Asset
+      id: upload-64bt-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above
+          asset_path: ./module-win64.zip
+          asset_name: RMCIOS-Windows-modules-win64.zip
+          asset_content_type: application/zip
